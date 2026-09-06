@@ -1,13 +1,21 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, isValidPasscode } from "@/lib/auth";
+import { safeRedirectPath } from "@/lib/safe-redirect";
+import { isRateLimited } from "@/lib/rate-limit";
 
 export async function login(formData: FormData) {
   const passcode = formData.get("passcode");
   const from = formData.get("from");
-  const redirectTo = typeof from === "string" && from.startsWith("/") ? from : "/";
+  const redirectTo = safeRedirectPath(from);
+
+  const headerStore = await headers();
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (isRateLimited(`login:${ip}`)) {
+    redirect(`/login?error=rate_limit&from=${encodeURIComponent(redirectTo)}`);
+  }
 
   if (typeof passcode !== "string" || !isValidPasscode(passcode)) {
     redirect(`/login?error=1&from=${encodeURIComponent(redirectTo)}`);

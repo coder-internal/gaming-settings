@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { safeRedirectPath } from "@/lib/safe-redirect";
 
 /**
  * Flips the favorite flag on a single curated settings profile, then
@@ -24,7 +25,7 @@ export async function toggleFavorite(formData: FormData) {
   });
 
   if (typeof returnTo === "string" && returnTo) {
-    redirect(returnTo);
+    redirect(safeRedirectPath(returnTo));
     return;
   }
 

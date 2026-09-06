@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { isAuthorizedApiRequest, unauthorizedResponse } from "@/lib/api-auth";
 import { validateProfileInput } from "@/lib/settings-profile-input";
+import { parseJsonBody } from "@/lib/parse-json-body";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!isAuthorizedApiRequest(request)) return unauthorizedResponse();
 
-  const body = await request.json();
+  const { data: body, error: parseError } = await parseJsonBody(request);
+  if (parseError) return Response.json({ error: parseError }, { status: 400 });
+
   const { data, error } = validateProfileInput(body);
   if (error || !data) return Response.json({ error: error ?? "Unknown validation error." }, { status: 400 });
 

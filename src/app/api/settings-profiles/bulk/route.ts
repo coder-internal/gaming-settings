@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { isAuthorizedApiRequest, unauthorizedResponse } from "@/lib/api-auth";
 import { validateProfileInput } from "@/lib/settings-profile-input";
+import { parseJsonBody } from "@/lib/parse-json-body";
 
 export const dynamic = "force-dynamic";
+
+const MAX_BULK_SIZE = 500;
 
 /**
  * Upserts many curated settings profiles in one call, e.g. after a batch
@@ -14,10 +17,18 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   if (!isAuthorizedApiRequest(request)) return unauthorizedResponse();
 
-  const body = await request.json();
+  const { data: body, error: parseError } = await parseJsonBody(request);
+  if (parseError) return Response.json({ error: parseError }, { status: 400 });
+
   const list = (body as { profiles?: unknown[] })?.profiles;
   if (!Array.isArray(list) || list.length === 0) {
     return Response.json({ error: "Body must be { profiles: [...] } with at least one entry." }, { status: 400 });
+  }
+  if (list.length > MAX_BULK_SIZE) {
+    return Response.json(
+      { error: `Body must contain at most ${MAX_BULK_SIZE} profiles per request.` },
+      { status: 400 }
+    );
   }
 
   const results: Array<{ index: number; ok: boolean; error?: string; id?: string }> = [];

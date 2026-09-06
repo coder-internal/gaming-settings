@@ -24,7 +24,12 @@ export default async function LoginPage({
             placeholder="Passcode"
             className="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-4 text-lg text-slate-100 placeholder:text-slate-500 focus:border-slate-400 focus:outline-none"
           />
-          {error && (
+          {error === "rate_limit" && (
+            <p className="text-center text-sm text-red-400">
+              Too many attempts. Wait a minute and try again.
+            </p>
+          )}
+          {error && error !== "rate_limit" && (
             <p className="text-center text-sm text-red-400">Incorrect passcode.</p>
           )}
           <button

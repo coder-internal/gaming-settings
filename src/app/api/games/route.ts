@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { isAuthorizedApiRequest, unauthorizedResponse } from "@/lib/api-auth";
+import { parseJsonBody } from "@/lib/parse-json-body";
 
 export const dynamic = "force-dynamic";
 
@@ -17,15 +18,21 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   if (!isAuthorizedApiRequest(request)) return unauthorizedResponse();
 
-  const body = await request.json();
-  const name = String(body.name ?? "").trim();
-  const platform = String(body.platform ?? "OTHER");
-  const notes = body.notes ? String(body.notes).trim() : null;
-  const steamAppId = body.steamAppId != null ? Number(body.steamAppId) : null;
-  const xboxTitleId = body.xboxTitleId ? String(body.xboxTitleId) : null;
+  const { data: body, error: parseError } = await parseJsonBody(request);
+  if (parseError) return Response.json({ error: parseError }, { status: 400 });
+  const b = body as Record<string, unknown>;
+
+  const name = String(b.name ?? "").trim();
+  const platform = String(b.platform ?? "OTHER");
+  const notes = b.notes ? String(b.notes).trim() : null;
+  const steamAppId = b.steamAppId != null ? Number(b.steamAppId) : null;
+  const xboxTitleId = b.xboxTitleId ? String(b.xboxTitleId) : null;
 
   if (!name) {
     return Response.json({ error: "name is required." }, { status: 400 });
+  }
+  if (steamAppId != null && !Number.isFinite(steamAppId)) {
+    return Response.json({ error: "steamAppId must be a number." }, { status: 400 });
   }
   if (!["STEAM", "XBOX", "OTHER"].includes(platform)) {
     return Response.json(
