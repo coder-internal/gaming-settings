@@ -1,9 +1,17 @@
 # gaming-settings
 
-Personal, single-user web app to track your game library, your computers,
-and the optimal graphics settings for each (game, computer, target) combo.
+Single-user web app to track your game library, your computers, and the
+optimal graphics settings for each (game, computer, target) combo.
 Mobile-first: designed to be pulled up on your phone while sitting at the
 machine that's actually running the game.
+
+This repo is a shared **template**, not a shared app: there is no
+multi-tenant login, and everyone's data lives in their own database. If you
+want your own gaming-settings tracker, **fork this repo** and deploy your
+own instance (own Vercel project, own database, own passcode) — see
+[Getting your own instance](#getting-your-own-instance) below. Don't open a
+PR against this repo to add your own games/computers/settings; that data
+belongs in your fork, not here.
 
 ## Stack
 
@@ -49,6 +57,21 @@ and registration, and `docs/CURATING_SETTINGS.md` for the repeatable
 research-then-populate workflow used to build out curated profiles for a
 batch of games/computers.
 
+## Getting your own instance
+
+Anyone at Coder can have their own gaming-settings tracker:
+
+1. **Fork this repo** (`coder-internal/gaming-settings`) to your own GitHub
+   account or another org you control. Each fork is a fully independent
+   instance — its own database, its own passcode, its own Steam/Xbox keys.
+   There's nothing to coordinate with other forks and no shared backend.
+2. Follow [Local development](#local-development) and
+   [Deploying](#deploying) below using *your fork*.
+3. Optional: if you improve something generically useful (a bug fix, a UI
+   improvement, a new integration), open a PR back against
+   `coder-internal/gaming-settings` so other forks can benefit. Don't PR in
+   your personal game/computer/settings data.
+
 ## Local development
 
 ```bash
@@ -65,13 +88,17 @@ every environment variable is for and where it comes from.
 
 ## Deploying
 
-1. Import the repo into Vercel.
+1. Import *your fork* into Vercel (Coder's Vercel org — see the SMART AI
+   Program's [Vercel Initial Setup & Onboarding Guide](https://github.com/coder-internal/smart-ai-program/blob/main/docs/Vercel_Initial_Setup_Onboarding_Guide.md)
+   if you haven't deployed to Vercel before). Do not deploy under a
+   personal Vercel account.
 2. Add the Neon Postgres integration from the Vercel Marketplace (Storage
    tab), with no custom variable prefix. It creates `DATABASE_URL` and
    `DATABASE_URL_UNPOOLED` automatically, among others (see
    `docs/ENVIRONMENT.md`).
-3. Set `APP_PASSCODE` in the Vercel project's environment variables.
+3. Set `APP_PASSCODE` in your Vercel project's environment variables to a
+   passcode of your choosing. This is what gates access to *your* instance.
 4. Deploy. Migrations run automatically as part of the build (`prisma migrate deploy` runs before `next build`; see `package.json`), so there's no separate manual migration step.
-5. Set `STEAM_API_KEY` and `STEAM_ID` to enable Steam library sync (already wired up; see `docs/ENVIRONMENT.md`).
-6. Set `XBL_API_KEY` (and optionally `XUID`) to enable Xbox library sync (already wired up; see `docs/ENVIRONMENT.md`).
-7. Set `API_TOKEN` (any long random string) to enable the JSON API / MCP server (see `docs/API.md`, `mcp-server/README.md`).
+5. Set `STEAM_API_KEY` and `STEAM_ID` (yours) to enable Steam library sync (already wired up; see `docs/ENVIRONMENT.md`).
+6. Set `XBL_API_KEY` (and optionally `XUID`, yours) to enable Xbox library sync (already wired up; see `docs/ENVIRONMENT.md`).
+7. Set `API_TOKEN` (any long random string, yours) to enable the JSON API / MCP server (see `docs/API.md`, `mcp-server/README.md`).

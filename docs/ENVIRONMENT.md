@@ -12,7 +12,7 @@ agent) don't have to rediscover this by trial and error.
 |--------------------------|----------------------------------|----------|
 | `DATABASE_URL`           | Neon integration (auto-created)  | Pooled connection, used by Prisma Client at runtime (`prisma/schema.prisma` `datasource.url`) |
 | `DATABASE_URL_UNPOOLED`  | Neon integration (auto-created)  | Direct/non-pooled connection, used by Prisma for migrations (`prisma/schema.prisma` `datasource.directUrl`) |
-| `APP_PASSCODE`           | Manually set in Vercel           | Shared passcode for the single-user auth gate (`src/lib/auth.ts`, `src/proxy.ts`) |
+| `APP_PASSCODE`           | Manually set in Vercel           | Passcode for this deployment's single-user auth gate (`src/lib/auth.ts`, `src/proxy.ts`). Each fork/deployment sets its own; don't share it across instances. |
 | `STEAM_API_KEY`          | Manually set in Vercel           | Steam Web API key, used by the Steam library sync (`src/app/(app)/games/actions.ts`) |
 | `STEAM_ID`               | Manually set in Vercel           | Your SteamID64, used by the Steam library sync above |
 | `XBL_API_KEY`            | Manually set in Vercel           | OpenXBL (xbl.io) API key, used by the Xbox library sync (`src/app/(app)/games/actions.ts`) |
