@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Platform {
+  STEAM
+  XBOX
+  OTHER
+}
+
+enum RecommendationSource {
+  CURATED
+  AI_GENERATED
+}
+
+model Game {
+  id          String   @id @default(cuid())
+  name        String
+  platform    Platform
+  steamAppId  Int?     @unique
+  xboxTitleId String?  @unique
+  coverImageUrl String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  settingsProfiles SettingsProfile[]
+
+  @@index([name])
+}
+
+model Computer {
+  id            String   @id @default(cuid())
+  name          String
+  cpu           String
+  gpu           String
+  ramGb         Int
+  os            String
+  storageNotes  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  settingsProfiles SettingsProfile[]
+}
+
+model SettingsProfile {
+  id               String               @id @default(cuid())
+  gameId           String
+  computerId       String
+  targetResolution String               @default("3840x2160")
+  targetFps        Int                  @default(120)
+  settings         Json
+  source           RecommendationSource @default(CURATED)
+  favorite         Boolean              @default(false)
+  notes            String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  game     Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  computer Computer @relation(fields: [computerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, computerId, targetResolution, targetFps])
+  @@index([favorite])
+}
